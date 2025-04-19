@@ -1,65 +1,157 @@
-# EXP.NO.9-Simulation-of-Pulse-Code-Modulation
+# EXP.NO.9-Simulation-Sampling-and-multiplexing-in-PCM
+9.Simulation of PCM
 
 # AIM
-To simulate the Pulse Code Modulation using python
+
+To simulate the Pulse Code Modulation (PCM) of two analog signals with different frequencies, and to demonstrate Time Division Multiplexing (TDM) by interleaving their PCM samples using Python.
 
 # SOFTWARE REQUIRED
-Google Colab
+
+Python Software 
+
+-> Numpy Library
+
+-> Matplotlib Library
+
+-> Scipy Library (for signal processing)
 
 # ALGORITHMS
 
-1.  Initialize the sampling rate,frequency,duration and quantization level
-  
-2.  Create a Time Vector t using linesapce
-   
-3.  Generate sampling rate duration points
+Algorithm: PCM Modulation and TDM Multiplexing of Two Signals
+Step 1: Initialize Parameters
+Set sampling_rate, duration, and quantization_levels.
 
-4.  Generate the analog message signal using a sine wave
-        
-5.  Generate a clock signal, used for sampling
-        
-6.  Calculate quantization_step and quantize message signal
+Define the frequencies frequency1 and frequency2 for the two message signals.
 
-7.  Convert quantized_signal to a digital representation
-    
-8.  Display the plots.
+Step 2: Generate Time Base
+Create a time vector t using np.linspace() based on sampling rate and duration.
 
+Step 3: Generate Analog Message Signals
+Compute:
 
+message_signal1 = sin(2π * frequency1 * t)
+
+message_signal2 = sin(2π * frequency2 * t)
+
+Step 4: Quantize Message Signals
+For each signal:
+
+Find the quantization step size:
+step = (max(signal) - min(signal)) / quantization_levels
+
+Quantize the signal:
+quantized = round(signal / step) * step
+
+Normalize and convert to integer PCM values:
+pcm = ((quantized - min(quantized)) / step).astype(int)
+
+Step 5: Perform Time Division Multiplexing (TDM)
+Interleave the PCM samples of the two signals:
+
+Create an empty array multiplexed_pcm of size 2 * pcm_signal1.size.
+
+Assign:
+
+multiplexed_pcm[0::2] = pcm_signal1
+
+multiplexed_pcm[1::2] = pcm_signal2
+
+Step 6: Generate Clock Signal
+Create a high-frequency clock signal (e.g., 200 Hz) for timing reference:
+
+clock_signal = sign(sin(2π * 200 * t))
+
+Step 7: Plot the Results
+Use matplotlib to generate subplots for:
+
+Message Signal 1
+
+Clock Signal for Signal 1
+
+Quantized Signal 1
+
+Message Signal 2
+
+Clock Signal for Signal 2
+
+Quantized Signal 2
+
+Combined Quantized Signals
+
+Final Multiplexed PCM Signal
 # PROGRAM
+
 
 import matplotlib.pyplot as plt
 
 import numpy as np
 
-sampling_rate = 5000  # Sampling rate (samples per second)
+#Parameters
 
-frequency = 50  # Frequency of the message signal (analog signal)
+sampling_rate = 5000
 
-duration = 0.1  # Duration of the signal in seconds
+duration = 0.1
 
-quantization_levels = 16  # Number of quantization levels (PCM resolution)
+quantization_levels = 16
+
+#Time base
 
 t = np.linspace(0, duration, int(sampling_rate * duration), endpoint=False)
 
-message_signal = np.sin(2 * np.pi * frequency * t)
+#Two message signals
 
-clock_signal = np.sign(np.sin(2 * np.pi * 200 * t))  # Increased clock frequency to 200 Hz
+frequency1 = 50
 
-quantization_step = (max(message_signal) - min(message_signal)) / quantization_levels
+frequency2 = 120
 
-quantized_signal = np.round(message_signal / quantization_step) * quantization_step
+message_signal1 = np.sin(2 * np.pi * frequency1 * t)
 
-pcm_signal = (quantized_signal - min(quantized_signal)) / quantization_step
+message_signal2 = np.sin(2 * np.pi * frequency2 * t)
 
-pcm_signal = pcm_signal.astype(int)
+#Quantization
 
-plt.figure(figsize=(12, 10))
+def quantize(signal, levels):
 
-plt.subplot(4, 1, 1)
+    step = (max(signal) - min(signal)) / levels
+    
+    quantized = np.round(signal / step) * step
+    
+    pcm = ((quantized - min(quantized)) / step).astype(int)
+    
+    return quantized, pcm
 
-plt.plot(t, message_signal, label="Message Signal (Analog)", color='blue')
 
-plt.title("Message Signal (Analog)")
+quantized_signal1, pcm_signal1 = quantize(message_signal1, quantization_levels)
+
+quantized_signal2, pcm_signal2 = quantize(message_signal2, quantization_levels)
+
+#Multiplexing the PCM signals
+
+#Interleaving samples from both signals
+
+
+multiplexed_pcm = np.empty((pcm_signal1.size + pcm_signal2.size,), dtype=int)
+
+multiplexed_pcm[0::2] = pcm_signal1
+
+multiplexed_pcm[1::2] = pcm_signal2
+
+#Time base for multiplexed stream (double samples)
+t_mux = np.linspace(0, duration, multiplexed_pcm.size, endpoint=False)
+
+#Clock signal for reference
+
+clock_signal = np.sign(np.sin(2 * np.pi * 200 * t))
+
+#Plotting
+
+plt.figure(figsize=(14, 12))
+
+plt.subplot(8, 1, 1)
+
+plt.plot(t, message_signal1, label="Message Signal 1 (50Hz)", color='blue')
+
+plt.title("Original Message Signal 1")
 
 plt.xlabel("Time [s]")
 
@@ -67,23 +159,14 @@ plt.ylabel("Amplitude")
 
 plt.grid(True)
 
-plt.subplot(4, 1, 2)
+plt.legend()
 
-plt.plot(t, clock_signal, label="Clock Signal (Increased Frequency)", color='green')
 
-plt.title("Clock Signal (Increased Frequency)")
+plt.subplot(8, 1, 2)
 
-plt.xlabel("Time [s]")
+plt.plot(t, clock_signal, label="Clock Signal", color='green')
 
-plt.ylabel("Amplitude")
-
-plt.grid(True)
-
-plt.subplot(4, 1, 3)
-
-plt.step(t, quantized_signal, label="PCM Modulated Signal", color='red')
-
-plt.title("PCM Modulated Signal (Quantized)")
+plt.title("Clock Signal")
 
 plt.xlabel("Time [s]")
 
@@ -91,24 +174,125 @@ plt.ylabel("Amplitude")
 
 plt.grid(True)
 
-plt.subplot(4, 1, 4)
 
-plt.plot(t, quantized_signal, label="Signal Demodulation", color='purple', linestyle='--')
+plt.subplot(8, 1, 3)
 
-plt.title("Signal Without Demodulation")
+plt.step(t, quantized_signal1, label="Quantized Signal 1", color='red')
+
+plt.title("Quantized Signals")
 
 plt.xlabel("Time [s]")
 
 plt.ylabel("Amplitude")
 
 plt.grid(True)
+
+plt.legend()
+
+
+plt.subplot(8, 1, 4)
+
+plt.plot(t, message_signal2, label="Message Signal 2 (120Hz)", color='orange', alpha=0.7)
+
+plt.title("Original Message Signal 2")
+
+plt.xlabel("Time [s]")
+
+plt.ylabel("Amplitude")
+
+plt.grid(True)
+
+plt.legend()
+
+
+plt.subplot(8, 1, 5)
+
+plt.plot(t, clock_signal, label="Clock Signal", color='green')
+
+plt.title("Clock Signal")
+
+plt.xlabel("Time [s]")
+
+plt.ylabel("Amplitude")
+
+plt.grid(True)
+
+
+plt.subplot(8, 1, 6)
+
+plt.step(t, quantized_signal2, label="Quantized Signal 2", color='purple', alpha=0.7)
+
+plt.title("Quantized Signals")
+
+plt.xlabel("Time [s]")
+
+
+plt.ylabel("Amplitude")
+
+plt.grid(True)
+
+plt.legend()
+
+
+
+plt.subplot(8, 1, 7)
+
+plt.step(t, quantized_signal1, label="Quantized Signal 1", color='red')
+
+plt.step(t, quantized_signal2, label="Quantized Signal 2", color='purple', alpha=0.7)
+
+plt.title("Quantized Signals")
+
+plt.xlabel("Time [s]")
+
+plt.ylabel("Amplitude")
+
+plt.grid(True)
+
+plt.legend()
+
+
+
+plt.subplot(8, 1, 8)
+
+plt.step(t_mux, multiplexed_pcm, label="Multiplexed PCM Signal", color='black')
+
+plt.title("Multiplexed PCM Signal (Interleaved)")
+
+plt.xlabel("Time [s]")
+
+plt.ylabel("PCM Value")
+
+plt.grid(True)
+
+plt.legend()
+
+
 
 plt.tight_layout()
 
 plt.show()
 
-# OUTPUT
- ![PCM](https://github.com/user-attachments/assets/65ed65de-b59f-4a01-bd52-cc7015da0be3)
 
+
+# OUTPUT
+
+![PCM OUTPUT](https://github.com/user-attachments/assets/77bae5ba-d55a-42e6-8f71-b704bc6ec0dc)
+
+
+ 
 # RESULT / CONCLUSIONS
-Thus the simulation of pulse-code modulation was performed using python
+
+Two distinct analog signals (50Hz and 120Hz) are successfully generated and quantized.
+
+Their PCM representations are calculated and visualized.
+
+A time-division multiplexed PCM signal is constructed by interleaving PCM values from both signals.
+
+The output plots demonstrate:
+
+Clear quantization of both signals.
+
+Proper interleaving of PCM values for transmission in a multiplexed form.
+
+A visual representation of how TDM works with PCM for efficient digital signal transmission.
